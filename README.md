@@ -69,6 +69,12 @@ export AGENTJAM_DISTRIBUTION=/absolute/path/to/distribution.yaml
 
 Set this variable identically for API and worker. Explicit provider and skills environment variables override manifest defaults. ACP still requires the existing explicit opt-ins; manifests cannot grant permissions or execute commands. Without a manifest, built-in Community defaults apply. Unknown fields and unsupported versions fail startup. Keep downstream data and configuration private. See [ADR 0005](docs/adr/0005-distribution-engine.md).
 
+## Multi-agent delegation (experimental)
+
+Create at least two agents. Complete a background job in Runtime, then open the source agent's Team tab, choose the completed job and target agent, and provide an explicit child task. The worker processes it through the existing queue. Incoming and outgoing delegation IDs and depth are visible in Team; check the target Runtime tab for results.
+
+Delegation is operator-directed, not autonomous model-to-model communication. Parent outputs are not automatically forwarded. Limits are three levels, five children per parent and twenty descendants per root; repeated ancestor agents are rejected. No shared memory or automatic result synthesis. See [ADR 0006](docs/adr/0006-orchestration.md) and [future work](https://github.com/nandoligeiro/agentjam/issues/10).
+
 ## Architecture
 Modular monolith with explicit module contracts; provider and persistence adapters are replaceable. Distributions supply branding, skills and policies separately. No corporate data belongs upstream.
 
