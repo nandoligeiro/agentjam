@@ -5,6 +5,9 @@ metadata:
 spec:
   branding:
     name: AgentJam
+    tagline: Open Agent Workspace
+    initials: AJ
+    primaryColor: "#5eead4"
   provider:
     type: mock
   skills:

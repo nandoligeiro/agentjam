@@ -59,6 +59,16 @@ uv run uvicorn agentjam.main:app --host 127.0.0.1 --port 8000
 
 Devin must already be installed and authenticated in the approved test environment. Real Devin compatibility is not yet validated. Each task starts a new ACP v1 session; text is collected before returning. Permission requests are cancelled, not automatically approved. See [ADR 0001](docs/adr/0001-acp-provider.md).
 
+## Distributions
+
+Copy the example `distributions/community/distribution.yaml` into a separate downstream repository and customize its metadata, branding, provider default and skills sources. Relative skill paths resolve against the manifest directory.
+
+```sh
+export AGENTJAM_DISTRIBUTION=/absolute/path/to/distribution.yaml
+```
+
+Set this variable identically for API and worker. Explicit provider and skills environment variables override manifest defaults. ACP still requires the existing explicit opt-ins; manifests cannot grant permissions or execute commands. Without a manifest, built-in Community defaults apply. Unknown fields and unsupported versions fail startup. Keep downstream data and configuration private. See [ADR 0005](docs/adr/0005-distribution-engine.md).
+
 ## Architecture
 Modular monolith with explicit module contracts; provider and persistence adapters are replaceable. Distributions supply branding, skills and policies separately. No corporate data belongs upstream.
 
@@ -68,5 +78,8 @@ Modular monolith with explicit module contracts; provider and persistence adapte
 3. Workspace isolation, approval gates and audit.
 4. Skills registry, persistent context and web workspace.
 5. Versioned distribution packaging.
+
+## Future work
+Track improvements in [GitHub issues](https://github.com/nandoligeiro/agentjam/issues), especially security hardening before production use.
 
 License: Apache-2.0.
