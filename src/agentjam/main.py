@@ -15,6 +15,9 @@ from agentjam.adapters.runtime_sqlite import SQLiteRuntimeStore
 from agentjam.modules.runtime.public import Runtime
 from agentjam.modules.runtime.api import runtime_router
 from agentjam.modules.context.api import context_router
+from agentjam.modules.orchestration.public import Orchestration
+from agentjam.modules.orchestration.api import orchestration_router
+from agentjam.adapters.orchestration_sqlite import SQLiteDelegationStore
 
 class AgentInput(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -32,6 +35,7 @@ def create_app(path: str | None = None):
     app.include_router(context_router(store, context))
     service = TaskService(store, store, provider)
     app.include_router(runtime_router(Runtime(store, SQLiteRuntimeStore(store), provider)))
+    app.include_router(orchestration_router(Orchestration(store, SQLiteDelegationStore(store))))
 
     @app.get("/distribution")
     def distribution_info():
