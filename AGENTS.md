@@ -1,0 +1,2 @@
+# Engineering rules
+Keep modules independent and expose public contracts. Domain code must not import infrastructure. Add tests for every behavioral change. Never include company-specific data, credentials, policies or branding in upstream. Default to mock providers; real providers require explicit configuration and enforceable permissions. Do not treat prompt instructions as sandboxing. Document trade-offs in ADRs. Use Discovery, Delivery and Postmortem for substantial changes.

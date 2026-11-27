@@ -1,0 +1,11 @@
+apiVersion: agentjam/v1alpha1
+kind: Distribution
+metadata:
+  name: community
+spec:
+  branding:
+    name: AgentJam
+  provider:
+    type: mock
+  skills:
+    sources: []
