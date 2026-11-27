@@ -14,7 +14,7 @@ def test_context_api_and_worker(tmp_path,monkeypatch):
     (root/"SKILL.md").write_text("Use domain boundaries",encoding="utf-8")
     monkeypatch.setenv("AGENTJAM_SKILLS_PATHS",str(root))
     path=str(tmp_path/"db.sqlite")
-    with TestClient(create_app(path)) as client:
+    with TestClient(create_app(path), base_url="http://127.0.0.1:8000", headers={"Authorization":"Bearer "+"t"*43}) as client:
         a=client.post("/agents",json={"name":"A"}).json()["id"]
         b=client.post("/agents",json={"name":"B"}).json()["id"]
         skill=client.get("/skills").json()[0]["id"]
@@ -39,7 +39,7 @@ def test_missing_skill_fails_closed(tmp_path,monkeypatch):
     file=root/"SKILL.md"
     file.write_text("sample")
     monkeypatch.setenv("AGENTJAM_SKILLS_PATHS",str(root))
-    with TestClient(create_app(str(tmp_path/"db"))) as client:
+    with TestClient(create_app(str(tmp_path/"db")), base_url="http://127.0.0.1:8000", headers={"Authorization":"Bearer "+"t"*43}) as client:
         a=client.post("/agents",json={"name":"A"}).json()["id"]
         sid=client.get("/skills").json()[0]["id"]
         client.put(f"/agents/{a}/skills",json={"skill_ids":[sid]})
