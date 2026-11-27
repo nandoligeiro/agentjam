@@ -1,6 +1,7 @@
 """Minimal ACP v1 stdio adapter. No shell or client-side tool execution."""
 import asyncio
 import json
+import os
 from pathlib import Path
 from agentjam.modules.agents.public import Agent
 from agentjam.modules.tasks.public import ProviderError
@@ -25,6 +26,7 @@ class AcpProvider:
         process = await asyncio.create_subprocess_exec(
             *self.command, cwd=self.workspace, stdin=asyncio.subprocess.PIPE,
             stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.DEVNULL,
+            env={k:v for k,v in os.environ.items() if k != "AGENTJAM_API_TOKEN"},
         )
         chunks: list[str] = []
         session_id = None
