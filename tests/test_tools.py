@@ -18,21 +18,24 @@ def test_mock_and_history(tmp_path,monkeypatch):
     assert registry.run("mock.alarm-count").status=="clear"
     with pytest.raises(LookupError):
         registry.run("aws.cloudwatch.alarm-count")
-    with TestClient(create_app(path)) as client:
+    with TestClient(create_app(path), base_url="http://127.0.0.1:8000", headers={"Authorization":"Bearer "+"t"*43}) as client:
         assert client.get("/tools/observations").json()[0]["alarm_count"]==0
         assert client.post("/tools/observations").status_code==405
 
 def test_fixed_aws_query_and_sanitized_result(tmp_path,monkeypatch):
     monkeypatch.setenv("AWS_SECRET_ACCESS_KEY","never-pass-this")
     def fake(args,**kwargs):
-        assert args[1:3]==["cloudwatch","describe-alarms"]
+        assert args[1:3] in (["sts","get-caller-identity"],["cloudwatch","describe-alarms"])
         assert kwargs["shell"] is False
         assert kwargs["timeout"]==30
         assert "AWS_SECRET_ACCESS_KEY" not in kwargs["env"]
         assert "--profile" in args
+        assert "AGENTJAM_API_TOKEN" not in kwargs["env"]
+        if args[1]=="sts":
+            return subprocess.CompletedProcess(args,0,b'"123456789012"',b"")
         return subprocess.CompletedProcess(args,0,b'{"metric":2,"composite":1}',b"")
     monkeypatch.setattr(subprocess,"run",fake)
-    tool=AwsAlarmTool(Path("/trusted/aws"),"test","us-east-1")
+    tool=AwsAlarmTool(Path("/trusted/aws"),"test","us-east-1","123456789012")
     registry=Registry([tool],SQLiteObservationStore(SQLiteStore(str(tmp_path/"db"))))
     result=registry.run(tool.id)
     assert result.alarm_count==3
@@ -40,9 +43,21 @@ def test_fixed_aws_query_and_sanitized_result(tmp_path,monkeypatch):
 
 def test_failure_does_not_persist_stderr(tmp_path,monkeypatch):
     monkeypatch.setattr(subprocess,"run",lambda *a,**k: subprocess.CompletedProcess([],1,b"",b"private output"))
-    tool=AwsAlarmTool(Path("/trusted/aws"),"test","us-east-1")
+    tool=AwsAlarmTool(Path("/trusted/aws"),"test","us-east-1","123456789012")
     registry=Registry([tool],SQLiteObservationStore(SQLiteStore(str(tmp_path/"db"))))
     result=registry.run(tool.id)
     assert result.status=="error"
     assert result.alarm_count is None
     assert "private" not in json.dumps(result.__dict__)
+
+def test_account_mismatch_never_queries_cloudwatch(tmp_path,monkeypatch):
+    def fake(args,**kwargs):
+        assert args[1:3]==["sts","get-caller-identity"]
+        return subprocess.CompletedProcess(args,0,b'"999999999999"',b"")
+    monkeypatch.setattr(subprocess,"run",fake)
+    tool=AwsAlarmTool(Path("/trusted/aws"),"test","us-east-1","123456789012")
+    registry=Registry([tool],SQLiteObservationStore(SQLiteStore(str(tmp_path/"db"))))
+    result=registry.run(tool.id)
+    assert result.status=="error"
+    assert result.error=="aws_account_mismatch"
+    assert result.alarm_count is None
