@@ -31,7 +31,7 @@ def test_distribution_metadata_and_skills(tmp_path,monkeypatch):
     (root/"SKILL.md").write_text("Example skill")
     monkeypatch.setenv("AGENTJAM_DISTRIBUTION",str(manifest))
     monkeypatch.delenv("AGENTJAM_SKILLS_PATHS",raising=False)
-    with TestClient(create_app(str(tmp_path/"test.db"))) as client:
+    with TestClient(create_app(str(tmp_path/"test.db")), base_url="http://127.0.0.1:8000", headers={"Authorization":"Bearer "+"t"*43}) as client:
         info=client.get("/distribution").json()
         assert info["branding"]["name"]=="Example Workspace"
         assert "skills" not in info
