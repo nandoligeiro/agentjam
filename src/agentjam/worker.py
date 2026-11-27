@@ -7,6 +7,7 @@ import time
 from threading import Event
 
 from agentjam.adapters.provider_config import configured_provider
+from agentjam.adapters.distribution_config import configured_distribution
 from agentjam.adapters.context_config import configured_context
 from agentjam.adapters.runtime_sqlite import SQLiteRuntimeStore
 from agentjam.adapters.sqlite import SQLiteStore
@@ -14,14 +15,15 @@ from agentjam.modules.runtime.public import Runtime
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    name, provider = configured_provider()
+    distribution = configured_distribution()
+    name, provider = configured_provider(distribution)
     if name != "mock" and os.getenv("AGENTJAM_ALLOW_BACKGROUND_ACP") != "true":
         raise RuntimeError("Background ACP requires separate explicit opt-in")
     timeout = float(os.getenv("AGENTJAM_ACP_TIMEOUT", "120")) if name == "acp" else 120
     if not math.isfinite(timeout) or not 0 < timeout <= 3600:
         raise ValueError("Worker provider timeout must be between 0 and 3600 seconds")
     store = SQLiteStore(os.getenv("AGENTJAM_DB", "agentjam.db"))
-    _, provider = configured_context(store, provider)
+    _, provider = configured_context(store, provider, distribution)
     runtime = Runtime(store, SQLiteRuntimeStore(store), provider)
     stop = Event()
     def shutdown(*_):
