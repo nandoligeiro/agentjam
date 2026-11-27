@@ -49,7 +49,7 @@ def test_schedule_coalescing_and_disable(tmp_path):
     assert len(repo.list_jobs("a"))==1
 
 def test_api(tmp_path):
-    with TestClient(create_app(str(tmp_path/"api.db"))) as client:
+    with TestClient(create_app(str(tmp_path/"api.db")), base_url="http://127.0.0.1:8000", headers={"Authorization":"Bearer "+"t"*43}) as client:
         agent=client.post("/agents",json={"name":"Test"}).json()
         path=f"/agents/{agent['id']}"
         assert client.post(path+"/jobs",json={"prompt":"hello"}).status_code==202
