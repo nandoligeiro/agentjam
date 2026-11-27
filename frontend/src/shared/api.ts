@@ -1,6 +1,8 @@
+let token = "";
+export function setApiToken(value: string) { token = value; }
 export async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch("/api" + path, {
-    ...init, headers: {"Content-Type": "application/json", ...init?.headers}
+    ...init, headers: {"Content-Type": "application/json", ...init?.headers, "Authorization": "Bearer " + token}
   });
   if (!response.ok) {
     const body = await response.json().catch(() => null);
