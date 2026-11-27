@@ -1,3 +1,16 @@
+## Local security — required before starting
+
+Generate a random local access token (do not commit, share, or use VITE_ variables):
+
+```sh
+export AGENTJAM_API_TOKEN="$(uv run python -c 'import secrets; print(secrets.token_urlsafe(32))')"
+uv run uvicorn agentjam.main:app --host 127.0.0.1 --port 8000 --no-access-log
+```
+
+Enter the token in the local UI (retrieve it privately from your shell). API requests require an Authorization: Bearer header. Without a token, the API is locked. Use a private OS directory for SQLite and keep all services loopback-only.
+
+For an approved PRE pilot, set AGENTJAM_POC_MODE=pre and AGENTJAM_PROVIDER=mock in API and worker processes. Real ACP is blocked in this mode. AWS collector now requires AGENTJAM_AWS_ACCOUNT_ID (expected 12-digit account); STS identity is checked before each collection. Use an approved read-only profile, separate database and authorized region. Never copy credentials into AgentJam. See ADR 0009 for limitations.
+
 # AgentJam
 Local-first modular workspace for persistent AI agents.
 
