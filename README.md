@@ -2,7 +2,7 @@
 Local-first modular workspace for persistent AI agents.
 
 ## Status
-Early walking skeleton: persistent agents and task history, manual execution through a mock provider. An experimental ACP v1 adapter is available. Scheduled execution, real isolation and a full web workspace are not implemented yet. Do not connect sensitive repositories.
+Early walking skeleton: persistent agents and task history, manual execution through a mock provider. An experimental ACP v1 adapter is available. Scheduled execution, real isolation are not implemented yet; an initial web workspace is available. Do not connect sensitive repositories.
 
 ## Run
 ```sh
@@ -11,6 +11,18 @@ uv run uvicorn agentjam.main:app --host 127.0.0.1 --port 8000
 uv run pytest
 ```
 Open http://127.0.0.1:8000/docs. Create an agent, then submit a task. Results are simulated by default. The database defaults to `agentjam.db`.
+
+## Web workspace
+
+Start the backend as above, then in a second terminal:
+
+```sh
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://127.0.0.1:5173. Create an agent and run tasks. The timeline displays persisted independent task results, not conversational context. Mock remains the default. Node.js 22 recommended. Run `npm test` and `npm run build` for checks. Development and preview are loopback-only; do not expose the unauthenticated API or UI.
 
 ## Experimental ACP provider (POSIX shell)
 Only use in an isolated disposable environment. The child process is not sandboxed. Do not expose this unauthenticated API to a network or connect sensitive repositories.
