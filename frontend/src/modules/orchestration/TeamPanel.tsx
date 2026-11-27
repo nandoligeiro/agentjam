@@ -28,7 +28,7 @@ export function TeamPanel({agent,agents}:{agent:Agent;agents:Agent[]}){
   const name=(id:string)=>agents.find(a=>a.id===id)?.name??id;
   const eligible=jobs.filter(j=>j.status==="succeeded");
   return <section className="runtime-panel" aria-label="Team delegations">
-    <h2>Team · {agent.name}</h2>
+    <span className="eyebrow">Collaboration / Delegation</span><h2>Team · {agent.name}</h2>
     <p>Operator-directed delegation from completed background jobs. A separate worker executes each child task. Results and memory are not automatically shared.</p>
     {error&&<p role="alert" className="error">{error}</p>}
     <button disabled={busy||loading} onClick={()=>setRevision(v=>v+1)}>Refresh team</button>
@@ -37,7 +37,7 @@ export function TeamPanel({agent,agents}:{agent:Agent;agents:Agent[]}){
       <label>Parent job<select required value={parent} onChange={e=>setParent(e.target.value)}><option value="">Choose completed job</option>{eligible.map(j=><option key={j.id} value={j.id}>{j.prompt.slice(0,100)} · {j.id.slice(0,8)}</option>)}</select></label>
       <label>Target agent<select required value={target} onChange={e=>setTarget(e.target.value)}><option value="">Choose teammate</option>{agents.filter(a=>a.id!==agent.id).map(a=><option key={a.id} value={a.id}>{a.name}</option>)}</select></label>
       <label>Explicit task<textarea required maxLength={20000} value={prompt} onChange={e=>setPrompt(e.target.value)}/></label>
-      <button disabled={busy||!parent||!target||!prompt.trim()}>Queue delegated task</button>
+      <button className="primary-button" disabled={busy||!parent||!target||!prompt.trim()}>Queue delegated task</button>
     </form>}
     <h3>Delegation history</h3>
     {links.length===0&&<p>No delegations yet.</p>}
