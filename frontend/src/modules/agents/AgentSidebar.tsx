@@ -1,8 +1,11 @@
 import { useState, type FormEvent } from "react";
 import { createAgent, type Agent } from "./api";
 import { errorMessage } from "../../shared/api";
+import {Icon} from "../../shared/ui/Icon";
 interface Props { branding:{name:string;tagline:string;initials:string}; edition:string; agents: Agent[]; selected: string | null; onSelect: (id:string)=>void; onCreated: (agent:Agent)=>void }
 export function AgentSidebar({branding,edition,agents,selected,onSelect,onCreated}:Props) {
+  const [query,setQuery]=useState("");
+  const filtered=agents.filter(a=>a.name.toLowerCase().includes(query.toLowerCase()));
   const [creating,setCreating] = useState(false);
   const [name,setName] = useState("");
   const [instructions,setInstructions] = useState("");
@@ -16,15 +19,17 @@ export function AgentSidebar({branding,edition,agents,selected,onSelect,onCreate
   }
   return <aside className="sidebar">
     <div className="brand"><span className="logo" aria-hidden="true">{branding.initials}</span><div><strong>{branding.name}</strong><small>{branding.tagline}</small></div></div>
-    <div className="sidebar-heading"><h2>Agents</h2><button onClick={()=>setCreating(!creating)} disabled={busy} aria-expanded={creating}>{creating?"Close":"+ New"}</button></div>
+    <div className="sidebar-heading"><h2>Agents <span className="count">{agents.length}</span></h2><button className="icon-button" aria-label={creating?"Close new agent form":"Create agent"} onClick={()=>setCreating(!creating)} disabled={busy} aria-expanded={creating}>{creating?"×":<Icon name="plus"/>}</button></div>
+    <label className="search-field"><Icon name="search" size={16}/><input aria-label="Search agents" placeholder="Search agents…" value={query} onChange={e=>setQuery(e.target.value)}/></label>
     {creating && <form className="create-form" onSubmit={submit}>
       <label>Name<input required maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></label>
       <label>Instructions<textarea maxLength={20000} rows={4} value={instructions} onChange={e=>setInstructions(e.target.value)}/></label>
       {error && <p role="alert" className="error">{error}</p>}
-      <button type="submit" disabled={busy || !name.trim()}>{busy?"Creating…":"Create agent"}</button>
+      <button className="primary-button" type="submit" disabled={busy || !name.trim()}>{busy?"Creating…":"Create agent"}</button>
     </form>}
     <nav aria-label="Agents">{agents.length===0 && <p className="muted">No agents yet. Create your first teammate.</p>}
-    {agents.map(agent=><button className={"agent-item"+(agent.id===selected?" active":"")} key={agent.id} onClick={()=>onSelect(agent.id)} aria-current={agent.id===selected?"true":undefined}><span className="avatar">{agent.name.slice(0,2).toUpperCase()}</span><span>{agent.name}</span></button>)}</nav>
-    <footer>Local-first · {edition} edition</footer>
+    {agents.length>0&&filtered.length===0&&<p className="muted">No matching agents.</p>}
+    {filtered.map(agent=><button className={"agent-item"+(agent.id===selected?" active":"")} key={agent.id} onClick={()=>onSelect(agent.id)} aria-current={agent.id===selected?"true":undefined}><span className="avatar">{agent.name.slice(0,2).toUpperCase()}</span><span>{agent.name}</span></button>)}</nav>
+    <footer><span className="local-dot" aria-hidden="true"/>Local workspace <span>· {edition}</span></footer>
   </aside>;
 }
