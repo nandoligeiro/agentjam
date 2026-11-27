@@ -3,10 +3,13 @@ import shlex
 from pathlib import Path
 from agentjam.adapters.acp import AcpProvider
 from agentjam.adapters.mock import MockProvider
+from agentjam.adapters.local_security import pre_mode
 
 def configured_provider(distribution=None):
     default = distribution.spec.provider.type if distribution else "mock"
     name = os.getenv("AGENTJAM_PROVIDER", default)
+    if pre_mode() and name != "mock":
+        raise ValueError("PRE mode forbids real ACP execution")
     if name == "mock":
         return name, MockProvider()
     if name != "acp":
