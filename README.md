@@ -24,6 +24,10 @@ npm run dev
 
 Open http://127.0.0.1:5173. Create an agent and run tasks. The timeline displays persisted independent task results, not conversational context. Mock remains the default. Node.js 22 recommended. Run `npm test` and `npm run build` for checks. Development and preview are loopback-only; do not expose the unauthenticated API or UI.
 
+## Workspace design system
+
+Graphite surfaces, restrained distribution-aware accent colors, semantic execution states, searchable agents, and an optional agent inspector. The frontend uses locally available fonts and reusable UI primitives without external font requests. See [ADR 0007](docs/adr/0007-workspace-design-system.md).
+
 ## Always-on runtime (experimental)
 
 Start the API and frontend as above. In a third terminal, from the same project directory, run:
