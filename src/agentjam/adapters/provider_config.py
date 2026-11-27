@@ -4,8 +4,9 @@ from pathlib import Path
 from agentjam.adapters.acp import AcpProvider
 from agentjam.adapters.mock import MockProvider
 
-def configured_provider():
-    name = os.getenv("AGENTJAM_PROVIDER", "mock")
+def configured_provider(distribution=None):
+    default = distribution.spec.provider.type if distribution else "mock"
+    name = os.getenv("AGENTJAM_PROVIDER", default)
     if name == "mock":
         return name, MockProvider()
     if name != "acp":
