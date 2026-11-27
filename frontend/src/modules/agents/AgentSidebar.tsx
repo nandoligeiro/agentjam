@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { createAgent, type Agent } from "./api";
 import { errorMessage } from "../../shared/api";
-interface Props { agents: Agent[]; selected: string | null; onSelect: (id:string)=>void; onCreated: (agent:Agent)=>void }
-export function AgentSidebar({agents,selected,onSelect,onCreated}:Props) {
+interface Props { branding:{name:string;tagline:string;initials:string}; edition:string; agents: Agent[]; selected: string | null; onSelect: (id:string)=>void; onCreated: (agent:Agent)=>void }
+export function AgentSidebar({branding,edition,agents,selected,onSelect,onCreated}:Props) {
   const [creating,setCreating] = useState(false);
   const [name,setName] = useState("");
   const [instructions,setInstructions] = useState("");
@@ -15,7 +15,7 @@ export function AgentSidebar({agents,selected,onSelect,onCreated}:Props) {
     catch(e){setError(errorMessage(e));} finally {setBusy(false);}
   }
   return <aside className="sidebar">
-    <div className="brand"><span className="logo" aria-hidden="true">AJ</span><div><strong>AgentJam</strong><small>Open Agent Workspace</small></div></div>
+    <div className="brand"><span className="logo" aria-hidden="true">{branding.initials}</span><div><strong>{branding.name}</strong><small>{branding.tagline}</small></div></div>
     <div className="sidebar-heading"><h2>Agents</h2><button onClick={()=>setCreating(!creating)} disabled={busy} aria-expanded={creating}>{creating?"Close":"+ New"}</button></div>
     {creating && <form className="create-form" onSubmit={submit}>
       <label>Name<input required maxLength={120} value={name} onChange={e=>setName(e.target.value)}/></label>
@@ -25,6 +25,6 @@ export function AgentSidebar({agents,selected,onSelect,onCreated}:Props) {
     </form>}
     <nav aria-label="Agents">{agents.length===0 && <p className="muted">No agents yet. Create your first teammate.</p>}
     {agents.map(agent=><button className={"agent-item"+(agent.id===selected?" active":"")} key={agent.id} onClick={()=>onSelect(agent.id)} aria-current={agent.id===selected?"true":undefined}><span className="avatar">{agent.name.slice(0,2).toUpperCase()}</span><span>{agent.name}</span></button>)}</nav>
-    <footer>Local-first · Community edition</footer>
+    <footer>Local-first · {edition} edition</footer>
   </aside>;
 }
