@@ -79,6 +79,26 @@ Create at least two agents. Complete a background job in Runtime, then open the 
 
 Delegation is operator-directed, not autonomous model-to-model communication. Parent outputs are not automatically forwarded. Limits are three levels, five children per parent and twenty descendants per root; repeated ancestor agents are rejected. No shared memory or automatic result synthesis. See [ADR 0006](docs/adr/0006-orchestration.md) and [future work](https://github.com/nandoligeiro/agentjam/issues/10).
 
+## Deterministic tools (experimental)
+
+The tool worker is independent of the ACP/LLM worker. It does not construct a model provider. Try the simulated check:
+
+```sh
+uv run python -m agentjam.tool_worker --tool mock.alarm-count
+```
+
+For an approved isolated AWS test account and an explicitly reviewed read-only profile, configure a trusted native AWS CLI executable, profile and region:
+
+```sh
+export AGENTJAM_ENABLE_AWS_TOOL=true
+export AGENTJAM_AWS_CLI=/absolute/path/to/aws
+export AGENTJAM_AWS_PROFILE=approved-test-profile
+export AGENTJAM_AWS_REGION=us-east-1
+uv run python -m agentjam.tool_worker --tool aws.cloudwatch.alarm-count
+```
+
+Add `--interval 900` for a foreground recurring check. The process stops on any collection failure; review permissions/session and restart manually. No automatic SSO login or remediation. Use the same AGENTJAM_DB for API and tool worker; keep different account/region scopes in separate databases. Only aggregate counts and controlled error codes are stored (latest 1000 per tool); view up to 100 at GET /tools/observations. AWS query costs may apply. Zero alarms is not proof of overall health. No HTTP execution endpoint, no LLM escalation or MCP yet. Keep API loopback-only and do not connect corporate resources until approval and security hardening. See [ADR 0008](docs/adr/0008-deterministic-tools.md) and [issue #14](https://github.com/nandoligeiro/agentjam/issues/14).
+
 ## Architecture
 Modular monolith with explicit module contracts; provider and persistence adapters are replaceable. Distributions supply branding, skills and policies separately. No corporate data belongs upstream.
 
