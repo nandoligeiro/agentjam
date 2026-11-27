@@ -11,6 +11,9 @@ def configured_registry(store):
         executable = Path(os.environ["AGENTJAM_AWS_CLI"])
         profile = os.environ["AGENTJAM_AWS_PROFILE"]
         region = os.environ["AGENTJAM_AWS_REGION"]
+        account = os.environ["AGENTJAM_AWS_ACCOUNT_ID"]
+        if not re.fullmatch(r"[0-9]{12}",account):
+            raise ValueError("Expected a 12-digit AWS account ID")
         if not executable.is_absolute() or not executable.is_file():
             raise ValueError("Provide an absolute trusted AWS CLI executable path")
         if executable.suffix.lower() in (".cmd", ".bat"):
@@ -19,5 +22,5 @@ def configured_registry(store):
             raise ValueError("Invalid AWS profile")
         if not re.fullmatch(r"[a-z]{2}(?:-[a-z0-9]+)+-[0-9]+",region):
             raise ValueError("Invalid AWS region")
-        tools.append(AwsAlarmTool(executable.resolve(),profile,region))
+        tools.append(AwsAlarmTool(executable.resolve(),profile,region,account))
     return Registry(tools,SQLiteObservationStore(store))
