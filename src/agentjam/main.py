@@ -20,6 +20,7 @@ from agentjam.modules.orchestration.api import orchestration_router
 from agentjam.adapters.orchestration_sqlite import SQLiteDelegationStore
 from agentjam.adapters.tool_sqlite import SQLiteObservationStore
 from agentjam.modules.tools.api import tools_router
+from agentjam.adapters.local_security import configured_token, install_security
 
 class AgentInput(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -31,6 +32,7 @@ class TaskInput(BaseModel):
 def create_app(path: str | None = None):
     distribution = configured_distribution()
     app = FastAPI(title=distribution.spec.branding.name, version="0.1.0.dev0")
+    install_security(app, configured_token())
     store = SQLiteStore(path or os.getenv("AGENTJAM_DB", "agentjam.db"))
     provider_name, provider = configured_provider(distribution)
     context, provider = configured_context(store, provider, distribution)

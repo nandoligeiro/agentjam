@@ -54,7 +54,7 @@ def test_atomic_fanout(tmp_path):
 
 def test_api_and_ownership(tmp_path):
     path=str(tmp_path/"api.db")
-    with TestClient(create_app(path)) as client:
+    with TestClient(create_app(path), base_url="http://127.0.0.1:8000", headers={"Authorization":"Bearer "+"t"*43}) as client:
         a=client.post("/agents",json={"name":"A"}).json()["id"]
         b=client.post("/agents",json={"name":"B"}).json()["id"]
         job=client.post(f"/agents/{a}/jobs",json={"prompt":"root"}).json()
