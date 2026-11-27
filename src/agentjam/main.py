@@ -5,7 +5,8 @@ from pydantic import BaseModel, Field
 from agentjam.modules.agents.public import Agent
 from agentjam.modules.tasks.public import TaskService
 from agentjam.adapters.sqlite import SQLiteStore
-from agentjam.adapters.mock import MockProvider
+from agentjam.adapters.provider_config import configured_provider
+from agentjam.modules.tasks.public import ProviderError
 
 class AgentInput(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -17,11 +18,12 @@ class TaskInput(BaseModel):
 def create_app(path: str | None = None):
     app = FastAPI(title="AgentJam", version="0.1.0.dev0")
     store = SQLiteStore(path or os.getenv("AGENTJAM_DB", "agentjam.db"))
-    service = TaskService(store, store, MockProvider())
+    provider_name, provider = configured_provider()
+    service = TaskService(store, store, provider)
 
     @app.get("/health")
     def health():
-        return {"status": "ok", "provider": "mock"}
+        return {"status": "ok", "provider": provider_name}
 
     @app.post("/agents", status_code=201)
     def create_agent(data: AgentInput):
@@ -37,6 +39,8 @@ def create_app(path: str | None = None):
     def run_task(agent_id: str, data: TaskInput):
         try:
             return service.run(agent_id, data.prompt)
+        except ProviderError:
+            raise HTTPException(502, "Agent provider execution failed")
         except LookupError:
             raise HTTPException(404, "Agent not found")
 
