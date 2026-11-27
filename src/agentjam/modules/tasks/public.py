@@ -10,6 +10,9 @@ class Task:
     prompt: str
     result: str
 
+class ProviderError(RuntimeError):
+    pass
+
 class Provider(Protocol):
     def execute(self, agent: Agent, prompt: str) -> str: ...
 
