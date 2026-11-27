@@ -12,19 +12,32 @@ class MockAlarmTool:
 
 class AwsAlarmTool:
     id = "aws.cloudwatch.alarm-count"
-    def __init__(self, executable: Path, profile: str, region: str):
-        self.executable, self.profile, self.region = executable, profile, region
+    def __init__(self, executable: Path, profile: str, region: str, account: str):
+        self.executable, self.profile, self.region, self.account = executable, profile, region, account
 
     def collect(self):
-        args = [str(self.executable), "cloudwatch", "describe-alarms",
+        identity = self._query(["sts", "get-caller-identity", "--query", "Account"])
+        if identity != self.account:
+            raise ToolFailure("aws_account_mismatch")
+        data = self._query(["cloudwatch", "describe-alarms",
                 "--state-value", "ALARM", "--alarm-types", "CompositeAlarm", "MetricAlarm",
+                "--query", "{metric:length(MetricAlarms),composite:length(CompositeAlarms)}"])
+        try:
+            values = [data["metric"], data["composite"]]
+            if any(type(v) is not int or v < 0 for v in values):
+                raise ValueError()
+            return sum(values)
+        except (ValueError, TypeError, KeyError):
+            raise ToolFailure("invalid_result") from None
+
+    def _query(self, command):
+        args = [str(self.executable), *command,
                 "--profile", self.profile, "--region", self.region,
-                "--query", "{metric:length(MetricAlarms),composite:length(CompositeAlarms)}",
                 "--output", "json", "--no-cli-pager", "--no-cli-auto-prompt",
                 "--cli-connect-timeout", "5", "--cli-read-timeout", "10"]
         # Do not pass explicit access keys or alternate AWS endpoint configuration.
         env = {k: v for k,v in os.environ.items()
-               if not k.startswith("AWS_")}
+               if not k.startswith("AWS_") and k != "AGENTJAM_API_TOKEN"}
         env["AWS_PAGER"] = ""
         env["AWS_IGNORE_CONFIGURED_ENDPOINT_URLS"] = "true"
         env["AWS_EC2_METADATA_DISABLED"] = "true"
@@ -41,10 +54,6 @@ class AwsAlarmTool:
         if len(result.stdout) > 4096:
             raise ToolFailure("invalid_result")
         try:
-            data = json.loads(result.stdout)
-            values = [data["metric"], data["composite"]]
-            if any(type(v) is not int or v < 0 for v in values):
-                raise ValueError()
-            return sum(values)
+            return json.loads(result.stdout)
         except (ValueError, TypeError, KeyError):
             raise ToolFailure("invalid_result") from None
