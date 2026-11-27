@@ -2,7 +2,7 @@
 Local-first modular workspace for persistent AI agents.
 
 ## Status
-Early walking skeleton: persistent agents and task history, manual execution through a mock provider. An experimental ACP v1 adapter is available. Scheduled execution, real isolation are not implemented yet; an initial web workspace is available. Do not connect sensitive repositories.
+Early walking skeleton: persistent agents and task history, manual execution through a mock provider. An experimental ACP v1 adapter is available. An initial web workspace and durable background runtime are available. Real isolation is not implemented. Do not connect sensitive repositories.
 
 ## Run
 ```sh
@@ -23,6 +23,18 @@ npm run dev
 ```
 
 Open http://127.0.0.1:5173. Create an agent and run tasks. The timeline displays persisted independent task results, not conversational context. Mock remains the default. Node.js 22 recommended. Run `npm test` and `npm run build` for checks. Development and preview are loopback-only; do not expose the unauthenticated API or UI.
+
+## Always-on runtime (experimental)
+
+Start the API and frontend as above. In a third terminal, from the same project directory, run:
+
+```sh
+uv run python -m agentjam.worker
+```
+
+Use the Runtime tab to queue a task immediately (delay 0) or later, or create a recurring interval schedule (minimum 60 seconds). The API and worker must use the same database and provider configuration. Worker defaults to mock. Keep exactly one worker; the synchronous Tasks API is independent and can overlap. Closing the browser does not stop the worker. Use an approved OS supervisor for startup/restart if needed; not provided here.
+
+Missed intervals coalesce into one pending run, queued jobs persist, and expired running jobs become interrupted without automatic retry. Disabling schedules does not cancel queued jobs. No cron, event triggers, cancellation or process fencing yet. For safety, do not run real ACP outside a disposable test environment. Background ACP additionally requires AGENTJAM_ALLOW_BACKGROUND_ACP=true. See [ADR 0003](docs/adr/0003-always-on-runtime.md).
 
 ## Experimental ACP provider (POSIX shell)
 Only use in an isolated disposable environment. The child process is not sandboxed. Do not expose this unauthenticated API to a network or connect sensitive repositories.
