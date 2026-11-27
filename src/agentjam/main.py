@@ -6,11 +6,13 @@ from agentjam.modules.agents.public import Agent
 from agentjam.modules.tasks.public import TaskService
 from agentjam.adapters.sqlite import SQLiteStore
 from agentjam.adapters.provider_config import configured_provider
+from agentjam.adapters.context_config import configured_context
 from agentjam.modules.tasks.public import ProviderError
 
 from agentjam.adapters.runtime_sqlite import SQLiteRuntimeStore
 from agentjam.modules.runtime.public import Runtime
 from agentjam.modules.runtime.api import runtime_router
+from agentjam.modules.context.api import context_router
 
 class AgentInput(BaseModel):
     name: str = Field(min_length=1, max_length=120)
@@ -23,6 +25,8 @@ def create_app(path: str | None = None):
     app = FastAPI(title="AgentJam", version="0.1.0.dev0")
     store = SQLiteStore(path or os.getenv("AGENTJAM_DB", "agentjam.db"))
     provider_name, provider = configured_provider()
+    context, provider = configured_context(store, provider)
+    app.include_router(context_router(store, context))
     service = TaskService(store, store, provider)
     app.include_router(runtime_router(Runtime(store, SQLiteRuntimeStore(store), provider)))
 

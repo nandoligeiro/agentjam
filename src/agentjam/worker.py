@@ -7,6 +7,7 @@ import time
 from threading import Event
 
 from agentjam.adapters.provider_config import configured_provider
+from agentjam.adapters.context_config import configured_context
 from agentjam.adapters.runtime_sqlite import SQLiteRuntimeStore
 from agentjam.adapters.sqlite import SQLiteStore
 from agentjam.modules.runtime.public import Runtime
@@ -20,6 +21,7 @@ def main():
     if not math.isfinite(timeout) or not 0 < timeout <= 3600:
         raise ValueError("Worker provider timeout must be between 0 and 3600 seconds")
     store = SQLiteStore(os.getenv("AGENTJAM_DB", "agentjam.db"))
+    _, provider = configured_context(store, provider)
     runtime = Runtime(store, SQLiteRuntimeStore(store), provider)
     stop = Event()
     def shutdown(*_):

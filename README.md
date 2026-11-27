@@ -36,6 +36,16 @@ Use the Runtime tab to queue a task immediately (delay 0) or later, or create a 
 
 Missed intervals coalesce into one pending run, queued jobs persist, and expired running jobs become interrupted without automatic retry. Disabling schedules does not cancel queued jobs. No cron, event triggers, cancellation or process fencing yet. For safety, do not run real ACP outside a disposable test environment. Background ACP additionally requires AGENTJAM_ALLOW_BACKGROUND_ACP=true. See [ADR 0003](docs/adr/0003-always-on-runtime.md).
 
+## Skills and memory
+
+Configure trusted local skill repositories before starting both API and worker:
+
+```sh
+export AGENTJAM_SKILLS_PATHS=/absolute/path/to/skills
+```
+
+Multiple roots use the OS path separator (colon on POSIX, semicolon on Windows). Keep root order identical for API and worker. Select up to eight discovered SKILL.md files and add memory notes in the Context tab. Both manual and background execution use selected skills and ten most recent notes at execution time. Context budget is 48,000 serialized characters. Missing skills or oversized context fail closed. No automatic learning or script execution. Never store secrets; configured provider may receive context and previous results may retain it. See [ADR 0004](docs/adr/0004-skills-memory.md).
+
 ## Experimental ACP provider (POSIX shell)
 Only use in an isolated disposable environment. The child process is not sandboxed. Do not expose this unauthenticated API to a network or connect sensitive repositories.
 
